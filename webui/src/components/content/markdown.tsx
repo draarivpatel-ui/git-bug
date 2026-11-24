@@ -12,6 +12,7 @@ import remarkGfm from "remark-gfm";
 import type { HighlighterCore } from "shiki/core";
 import type { PluggableList } from "unified";
 
+import { remoteImageSet, remoteImageURL } from "@/lib/image-url";
 import { getHighlighter, SHIKI_THEMES } from "@/lib/shiki";
 import { cn } from "@/lib/utils";
 
@@ -23,10 +24,10 @@ const sanitizeSchema = {
   attributes: {
     ...defaultSchema.attributes,
     a: [...(defaultSchema.attributes?.a ?? []), "aria-hidden", "class"],
-    // Allow Shiki's style attribute (CSS variables for theme colors) and class on code/spans
-    pre: [...(defaultSchema.attributes?.pre ?? []), "class", "style", "tabIndex"],
-    code: [...(defaultSchema.attributes?.code ?? []), "class", "style"],
-    span: [...(defaultSchema.attributes?.span ?? []), "class", "style"],
+    // Shiki adds its own styles after sanitization. A raw style could load a URL.
+    pre: [...(defaultSchema.attributes?.pre ?? []), "class", "tabIndex"],
+    code: [...(defaultSchema.attributes?.code ?? []), "class"],
+    span: [...(defaultSchema.attributes?.span ?? []), "class"],
     "*": [...(defaultSchema.attributes?.["*"] ?? []), "id"],
   },
 };
@@ -139,7 +140,18 @@ function MarkdownImage({ node: _node, src, alt, ...props }: ImgProps) {
       );
     }
   }
-  return <img src={src} alt={alt} {...props} />;
+  if (src?.startsWith("/gitfile/")) {
+    return <img src={src} alt={alt} {...props} />;
+  }
+  return <img {...props} alt={alt} src={remoteImageURL(src)} />;
+}
+
+function MarkdownSource({
+  node: _node,
+  srcSet,
+  ...props
+}: React.ComponentProps<"source"> & ExtraProps) {
+  return <source {...props} srcSet={remoteImageSet(srcSet)} />;
 }
 
 // Routes repo-local links client-side.  urlTransform has already rewritten
@@ -181,7 +193,7 @@ function MarkdownLink({ node: _node, href, children, ...props }: AnchorProps) {
   );
 }
 
-const components = { pre: PreBlock, img: MarkdownImage, a: MarkdownLink };
+const components = { pre: PreBlock, img: MarkdownImage, source: MarkdownSource, a: MarkdownLink };
 
 export function Markdown({ content, className, repoContext, size = "comment" }: MarkdownProps) {
   const highlighter = useShikiHighlighter();

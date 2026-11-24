@@ -23,6 +23,23 @@ describe("Markdown — code block focusability", () => {
 });
 
 describe("Markdown — repo documents", () => {
+  it("checks external image sources, including picture alternatives", () => {
+    const { container } = render(
+      <Markdown
+        content={`<picture>
+      <source srcset="https://images.example.org/a.png 1x, https://images.example.org:8443/b.png 2x">
+      <img src="https://gitlab.example.org:8929/avatar.png" alt="Alice">
+    </picture>
+
+![valid](https://example.org:00443/image.png)`}
+      />,
+    );
+    expect(container.querySelector("source")).not.toHaveAttribute("srcset");
+    expect(container.querySelector('img[alt="Alice"]')).not.toHaveAttribute("src");
+    const valid = container.querySelector('img[alt="valid"]');
+    expect(valid).toHaveAttribute("src", "https://example.org:00443/image.png");
+  });
+
   it("keeps its elements across re-renders with an equal repoContext", async () => {
     const content = "![logo](https://example.com/logo.png)";
     const { container, rerender } = render(

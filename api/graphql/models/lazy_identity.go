@@ -8,6 +8,7 @@ import (
 	"github.com/git-bug/git-bug/cache"
 	"github.com/git-bug/git-bug/entities/identity"
 	"github.com/git-bug/git-bug/entity"
+	"github.com/git-bug/git-bug/util/text"
 )
 
 // IdentityWrapper is an interface used by the GraphQL resolvers to handle an identity.
@@ -93,7 +94,11 @@ func (li *lazyIdentity) AvatarUrl(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return id.AvatarUrl(), nil
+	// only an avatar a client may load (values.md §9.1)
+	if url := id.AvatarUrl(); text.FetchableHTTPSURL(url) {
+		return url, nil
+	}
+	return "", nil
 }
 
 func (li *lazyIdentity) Keys(ctx context.Context) ([]*identity.Key, error) {
@@ -134,7 +139,11 @@ func (l loadedIdentity) Login(ctx context.Context) (string, error) {
 }
 
 func (l loadedIdentity) AvatarUrl(ctx context.Context) (string, error) {
-	return l.Interface.AvatarUrl(), nil
+	// only an avatar a client may load (values.md §9.1)
+	if url := l.Interface.AvatarUrl(); text.FetchableHTTPSURL(url) {
+		return url, nil
+	}
+	return "", nil
 }
 
 func (l loadedIdentity) Keys(ctx context.Context) ([]*identity.Key, error) {

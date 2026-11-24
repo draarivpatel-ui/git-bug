@@ -2,6 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Images from repository data load over HTTPS on port 443, redirects included (values.md §9.1). -->
+    <meta http-equiv="Content-Security-Policy" content="img-src 'self' https://*:443" />
+    <meta name="referrer" content="no-referrer" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#d0021b" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
