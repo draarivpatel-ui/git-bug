@@ -204,8 +204,8 @@ func (v *version) Validate() error {
 		return fmt.Errorf("email has unsafe characters")
 	}
 
-	if v.avatarURL != "" && !text.ValidUrl(v.avatarURL) {
-		return fmt.Errorf("avatarUrl is not a valid URL")
+	if v.avatarURL != "" && !text.ValidHTTPSURL(v.avatarURL) {
+		return fmt.Errorf("avatarUrl is not an HTTPS URL")
 	}
 
 	if len(v.nonce) > 64 {
